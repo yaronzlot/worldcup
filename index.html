@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#050510">
 <title>מונדיאל 2026 · ניחושים</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="מונדיאל 2026">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -156,6 +162,19 @@ html, body { height: 100%; background: var(--bg); color: #fff;
 @keyframes bounceIn { 0%{transform:scale(.8);opacity:0}80%{transform:scale(1.05)}100%{transform:scale(1);opacity:1} }
 @keyframes spin { to{transform:rotate(360deg)} }
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+/* ── PWA INSTALL BUTTON ── */
+#pwaInstallBtn {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 50; display: none; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: 50px;
+  background: linear-gradient(135deg, #004080, #FFD700);
+  border: none; color: #000; font-size: 13px; font-weight: 900;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  box-shadow: 0 4px 20px #FFD70040;
+  animation: slideUp 0.4s ease;
+}
+#pwaInstallBtn.visible { display: flex; }
 </style>
 </head>
 <body>
@@ -238,6 +257,11 @@ html, body { height: 100%; background: var(--bg); color: #fff;
     </div>
   </div>
 </div>
+
+<!-- PWA Install Button -->
+<button id="pwaInstallBtn" onclick="pwaTriggerInstall()">
+  📲 התקן אפליקציה
+</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -963,6 +987,42 @@ async function init(){
   }
 }
 init();
+</script>
+
+<script>
+// ── PWA: Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// ── PWA: Install Prompt ──
+let pwaInstallEvent = null;
+const pwaBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  pwaInstallEvent = e;
+  pwaBtn.classList.add('visible');
+
+  // Auto-hide after 8 seconds
+  setTimeout(() => pwaBtn.classList.remove('visible'), 8000);
+});
+
+window.pwaTriggerInstall = async function() {
+  if (!pwaInstallEvent) return;
+  pwaBtn.classList.remove('visible');
+  pwaInstallEvent.prompt();
+  const { outcome } = await pwaInstallEvent.userChoice;
+  pwaInstallEvent = null;
+};
+
+// Hide button once installed
+window.addEventListener('appinstalled', () => {
+  pwaBtn.classList.remove('visible');
+  pwaInstallEvent = null;
+});
 </script>
 </body>
 </html>
