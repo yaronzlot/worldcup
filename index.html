@@ -106,6 +106,18 @@ html, body { height: 100%; background: var(--bg); color: #fff;
 .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ffffff15;
   border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
 
+/* ── USER PICKS MODAL ── */
+.picks-overlay { position: fixed; inset: 0; z-index: 200; background: #000000cc;
+  display: flex; align-items: flex-end; justify-content: center; }
+.picks-sheet { background: #0a0a1e; border-radius: 24px 24px 0 0; border: 1px solid #ffffff15;
+  width: 100%; max-width: 480px; max-height: 82vh; overflow-y: auto; padding: 20px 16px 40px; }
+.picks-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.picks-close { margin-right: auto; background: none; border: none; color: #ffffff55; font-size: 24px; cursor: pointer; line-height: 1; }
+.pick-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+  border-radius: 11px; border: 1px solid #ffffff10; background: #ffffff06; margin-bottom: 6px; font-size: 12px; }
+.pick-row.correct { border-color: #22c55e44; background: #22c55e0a; }
+.pick-row.wrong { border-color: #f8717144; background: #f871710a; }
+.pick-row.pending { border-color: #FFD70033; background: #FFD7000a; }
 /* ── ADMIN PANEL ── */
 .admin-overlay { position: fixed; inset: 0; z-index: 200; background: #000000cc;
   display: flex; align-items: flex-end; justify-content: center; }
@@ -665,6 +677,56 @@ function showProf(){
   toast(`${cur.av} ${cur.nm} · ${pts} נק' · ${correct} נכונים`,'#3b82f6');
 }
 
+async function showUserPicks(uid,nm,av){
+  // Fetch user data from Firebase
+  let uP={};
+  try{
+    const s=await getDoc(doc(db,'users',uid));
+    if(s.exists()) uP=s.data().P||{};
+  }catch(e){ toast('שגיאה בטעינת ניחושים','#f87171'); return; }
+
+  const pickedMatches=MX.filter(m=>uP[m.id]!==undefined);
+  if(!pickedMatches.length){ toast(`${nm} עוד לא ניחש ⚽`,'#FFD700'); return; }
+
+  const correct=pickedMatches.filter(m=>RESULTS[m.id]&&RESULTS[m.id]===uP[m.id]).length;
+  const total=pickedMatches.length;
+
+  let rows='';
+  pickedMatches.forEach(m=>{
+    const pick=uP[m.id];
+    const res=RESULTS[m.id];
+    const cls=!res?'pending':res===pick?'correct':'wrong';
+    const icon=!res?'⏳':res===pick?'✅':'❌';
+    const pickLabel=pick==='h'?m.h:pick==='a'?m.a:'🤝 תיקו';
+    rows+=`<div class="pick-row ${cls}">
+      <span style="font-size:15px">${flag(m.h)}</span>
+      <span style="flex:1;font-weight:700">${m.h} – ${m.a}</span>
+      <span style="font-size:15px">${flag(m.a)}</span>
+      <span style="margin-right:6px;font-size:11px;color:#ffffffaa">${pickLabel}</span>
+      <span>${icon}</span>
+    </div>`;
+  });
+
+  const html=`<div class="picks-overlay" id="picksOverlay" onclick="if(event.target===this)closePicks()">
+    <div class="picks-sheet">
+      <div class="picks-header">
+        <span style="font-size:26px">${av||'⚽'}</span>
+        <div>
+          <div style="font-size:15px;font-weight:900">${nm}</div>
+          <div style="font-size:11px;color:#ffffff66">${total} ניחושים · ${correct} נכונים</div>
+        </div>
+        <button class="picks-close" onclick="closePicks()">✕</button>
+      </div>
+      ${rows}
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function closePicks(){
+  const el=document.getElementById('picksOverlay');
+  if(el)el.remove();
+}
+
 // ── CORE ──
 function toast(msg,col='#22c55e'){
   const t=document.getElementById('toast');t.textContent=msg;t.style.background=col;t.style.display='block';
@@ -852,7 +914,7 @@ function rLeaders(){
       const me=cur&&u.id===cur.id;
       const rank=i<3?medals[i]:`#${i+1}`;
       const col=i===0?'#FFD700':i===1?'#c0c0c0':i===2?'#cd7f32':me?'var(--blue)':'#ffffffcc';
-      h+=`<div class="lr ${me?'me':''}">
+      h+=`<div class="lr ${me?'me':''}" onclick="showUserPicks('${u.id}','${u.nm.replace(/'/g,"\\'")}','${u.av||'⚽'}')" style="cursor:pointer">
         <span style="font-size:18px;width:26px;text-align:center">${rank}</span>
         <span style="font-size:22px">${u.av||'⚽'}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:800">${u.nm}${me?' (אני)':''}</div>
@@ -880,6 +942,7 @@ window.showProf=showProf;window.register=register;window.onNI=onNI;
 window.tapLogo=tapLogo;window.checkPass=checkPass;window.closeAdmin=closeAdmin;
 window.setAdminRes=setAdminRes;window.applyResult=applyResult;
 window.clearResult=clearResult;window.resetResults=resetResults;window.resetAll=resetAll;
+window.showUserPicks=showUserPicks;window.closePicks=closePicks;
 
 // ── INIT ──
 initReg();
