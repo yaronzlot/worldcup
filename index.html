@@ -363,6 +363,10 @@ const EN2HE = {
   'Croatia':'קרואטיה','Ghana':'גאנה','Panama':'פנמה',
 };
 
+// ── GROUP NUMBER HELPER ──
+const GRP_KEYS = Object.keys({A:1,B:1,C:1,D:1,E:1,F:1,G:1,H:1,I:1,J:1,K:1,L:1});
+function gNum(g){ return GRP_KEYS.indexOf(g)+1; }
+
 // ── STATE ──
 let cur=null, P={}, KP={}, SUB={}, RESULTS={}, SCORES={}, LB=[];
 let aG='A', aMD=1, aAV='⚽', adminG='A';
@@ -411,7 +415,7 @@ function renderAdminFilter() {
   Object.keys(GRP).forEach(g=>{
     const b=document.createElement('button');
     b.className='pill'+(g===adminG?' active':'');
-    b.textContent=`בית ${g}`;
+    b.textContent=`בית ${gNum(g)}`;
     b.onclick=()=>{ adminG=g; renderAdminFilter(); renderAdminMatches(); };
     f.appendChild(b);
   });
@@ -420,7 +424,7 @@ function renderAdminFilter() {
 function renderAdminMatches() {
   const list=document.getElementById('adminMatchList');
   const gm=MX.filter(m=>m.g===adminG);
-  list.innerHTML=`<div style="font-size:11px;color:#ffffff44;margin-bottom:10px;font-weight:700">בית ${adminG} · ${gm.length} משחקים</div>`;
+  list.innerHTML=`<div style="font-size:11px;color:#ffffff44;margin-bottom:10px;font-weight:700">בית ${gNum(adminG)} · ${gm.length} משחקים</div>`;
   gm.forEach(m=>{
     const curR=RESULTS[m.id], curS=SCORES[m.id];
     const hf=flag(m.h), af=flag(m.a);
@@ -752,14 +756,14 @@ function rPredict(){
   let h='<div class="pills">';
   Object.keys(GRP).forEach(g=>{
     const ok=[1,2,3].every(md=>SUB[`${md}_${g}`]);
-    h+=`<button class="pill ${g===aG?'active':''}" onclick="sG('${g}')">${ok?'✅':''}בית ${g}</button>`;
+    h+=`<button class="pill ${g===aG?'active':''}" onclick="sG('${g}')">${ok?'✅':''}בית ${gNum(g)}</button>`;
   });
   h+='</div><div class="pills" style="margin-top:-6px">';
   [1,2,3].forEach(md=>{
     const ok=SUB[`${md}_${aG}`];
     h+=`<button class="pill ${md===aMD?'active':''}" onclick="sMD(${md})">${ok?'✅':''}מחזור ${md}</button>`;
   });
-  h+=`</div><div class="sl">⚽ בית ${aG} · מחזור ${aMD}</div>`;
+  h+=`</div><div class="sl">⚽ בית ${gNum(aG)} · מחזור ${aMD}</div>`;
   gm.forEach(m=>{h+=rMC(m,done);});
   if(!done){
     const pct=gm.length?Math.round(filled/gm.length*100):0;
@@ -768,7 +772,7 @@ function rPredict(){
       <div class="pt2"><div class="pf" style="width:${pct}%"></div></div>
     </div><button class="sb-main" onclick="subG()">שלח ניחושים 🎯</button>`;
   } else {
-    h+=`<div class="done-banner">✅ בית ${aG} מחזור ${aMD} נשלח!</div>`;
+    h+=`<div class="done-banner">✅ בית ${gNum(aG)} מחזור ${aMD} נשלח!</div>`;
   }
   return h;
 }
@@ -791,7 +795,7 @@ function rMC(m,lock){
     <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:9px">
       <span style="color:#FFD70088;font-weight:700">📅 ${m.d}</span>
       <span style="display:flex;align-items:center;gap:6px">${scoreStr}${badge}</span>
-      <span style="color:#ffffff22;font-weight:700">בית ${m.g}</span>
+      <span style="color:#ffffff22;font-weight:700">בית ${gNum(m.g)}</span>
     </div>
     <div class="tr3">
       <button class="tb ${p==='h'?'sel-h':''} ${r==='h'?'res':''}" ${dis} onclick="pM(${m.id},'h')" style="flex:2">
@@ -844,13 +848,13 @@ function rKO(){
 // ── GROUPS ──
 function rGroups(){
   let h='<div class="pills">';
-  Object.keys(GRP).forEach(g=>h+=`<button class="pill ${g===aG?'active':''}" onclick="sGV('${g}')">בית ${g}</button>`);
+  Object.keys(GRP).forEach(g=>h+=`<button class="pill ${g===aG?'active':''}" onclick="sGV('${g}')">בית ${gNum(g)}</button>`);
   h+='</div>';
   const s=standings(aG);
   const hasRes=MX.filter(m=>m.g===aG).some(m=>RESULTS[m.id]);
   h+=`<div class="gt">
     <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;font-weight:900;color:var(--gold)">⚽ בית ${aG}</span>
+      <span style="font-size:12px;font-weight:900;color:var(--gold)">⚽ בית ${gNum(aG)}</span>
       <span style="font-size:10px;color:var(--muted)">${hasRes?'תוצאות אמיתיות':'טרם התחיל'}</span>
     </div>
     <div class="gr" style="font-size:9px;color:#ffffff33;font-weight:700">#<span>נבחרת</span><span style="text-align:center">מ'</span><span style="text-align:center">נ'</span><span style="text-align:center;color:var(--draw)">ת'</span><span style="text-align:center">ה'</span><span style="text-align:center;color:var(--gold)">נק'</span></div>`;
