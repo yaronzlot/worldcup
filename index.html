@@ -507,7 +507,7 @@ async function resetAll(){
   await batch.commit();
   // Reset local user too
   P={}; KP={}; SUB={};
-  if(cur){ await fbSave(); saveLocal(); recalcPts(); }
+  if(cur){ saveLocal(); }
   LB=[];
   renderAdminMatches(); render();
   toast('💥 כל הנתונים אופסו','#f87171');
