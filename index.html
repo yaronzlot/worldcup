@@ -673,32 +673,26 @@ function initReg(){
 function onNI(){document.getElementById('regBtn').disabled=document.getElementById('nameIn').value.trim().length<2;}
 async function register(){
   const nm=document.getElementById('nameIn').value.trim();if(nm.length<2)return;
-  const newId='u_'+nm.toLowerCase().replace(/\s+/g,'_')+'_'+aAV.codePointAt(0);
+  const newId='u_'+nm.toLowerCase().replace(/\s+/g,'_');
 
-  // Check if user with this ID already exists in Firebase
-  let isExisting=false;
+  // Check if name is already taken
   try{
     const snap=await getDoc(doc(db,'users',newId));
     if(snap.exists()){
-      isExisting=true;
-      const d=snap.data();
-      // Load existing user data
-      cur={id:newId,nm:d.nm||nm,av:d.av||aAV};
-      P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};
+      toast(`השם "${nm}" כבר תפוס, בחר שם אחר 🚫`,'#ef4444');
+      return;
     }
   }catch(e){}
 
-  if(!isExisting){
-    cur={id:newId,nm,av:aAV};
-  }
+  cur={id:newId,nm,av:aAV};
 
   document.getElementById('regOverlay').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('uChip').textContent=cur.av;
   saveLocal();
-  if(!isExisting)await fbSave();
+  await fbSave();
   fbListenLB();listenResults();render();
-  toast(isExisting?`ברוך שובך, ${cur.nm}! ⚽`:`ברוך הבא, ${nm}! ⚽`);
+  toast(`ברוך הבא, ${nm}! ⚽`);
 }
 function showProf(){
   const pts=calcPts(P),correct=Object.entries(P).filter(([id,p])=>RESULTS[id]&&RESULTS[id]===p).length;
