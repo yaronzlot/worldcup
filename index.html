@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#050510">
+<title>מונדיאל 2026 · ניחושים</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="מונדיאל 2026">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #050510; --card: #0e0e20; --card2: #0a0a1a;
+  --gold: #FFD700; --green: #22c55e; --red: #f87171;
+  --blue: #3b82f6; --muted: #ffffff55; --border: #ffffff12;
+  --draw: #a78bfa;
+}
+html, body { height: 100%; background: var(--bg); color: #fff;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; overflow: hidden; }
+#app { height: 100vh; display: flex; flex-direction: column; }
+.bg-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 50% at 15% 5%, #00408022, transparent),
+    radial-gradient(ellipse 50% 40% at 85% 90%, #cc000018, transparent),
+    radial-gradient(ellipse 40% 60% at 50% 50%, #FFD70008, transparent); }
+.header { z-index: 10; background: #080818; border-bottom: 1px solid var(--border);
+  padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px; position: relative; z-index: 1; padding-bottom: 90px; }
+.nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  background: #080818; border-top: 1px solid var(--border); display: flex; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 9px 0 13px; border: none; background: transparent; color: #ffffff33;
+  cursor: pointer; font-family: inherit; font-size: 10px; font-weight: 700; transition: color 0.2s; }
+.nav-btn.active { color: var(--gold); }
+.nav-icon { font-size: 18px; margin-bottom: 2px; }
+.toast { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 999;
+  padding: 11px 20px; border-radius: 14px; font-size: 13px; font-weight: 700; color: #fff;
+  box-shadow: 0 4px 24px #00000066; white-space: nowrap; pointer-events: none; display: none; }
+.sl { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 10px; }
+.card { background: linear-gradient(135deg, var(--card), var(--card2));
+  border-radius: 16px; border: 1px solid var(--border); padding: 13px; margin-bottom: 10px; }
+.pill { flex-shrink: 0; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: #ffffff08; color: #ffffff66; font-size: 12px; font-weight: 800;
+  cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+.pill.active { background: linear-gradient(135deg, #004080, #0070cc); border-color: transparent; color: #fff; }
+.pills { display: flex; gap: 7px; margin-bottom: 13px; overflow-x: auto; padding-bottom: 2px; }
+.pills::-webkit-scrollbar { display: none; }
+.mc { background: linear-gradient(135deg, var(--card), var(--card2));
+  border-radius: 14px; border: 1px solid var(--border); padding: 12px; margin-bottom: 9px; transition: border-color 0.3s; }
+.mc.pk { border-color: #FFD70030; }
+.mc.correct { border-color: #22c55e55; background: linear-gradient(135deg,#081808,#060e06); }
+.mc.wrong { border-color: #f8717133; background: linear-gradient(135deg,#180808,#0e0606); }
+.tr3 { display: flex; align-items: stretch; gap: 5px; }
+.tb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 4px; border-radius: 11px; border: 2px solid #ffffff12; background: #ffffff04;
+  cursor: pointer; font-family: inherit; transition: all 0.18s; position: relative; min-width: 0; }
+.tb:disabled { opacity: 0.4; cursor: not-allowed; }
+.tb.sel-h { border-color: var(--gold); background: #FFD70015; box-shadow: 0 0 14px #FFD70025; }
+.tb.sel-d { border-color: var(--draw); background: #a78bfa12; }
+.tb.sel-a { border-color: var(--gold); background: #FFD70015; box-shadow: 0 0 14px #FFD70025; }
+.tb.res { border-color: var(--green) !important; background: #22c55e10 !important; }
+.tf { font-size: 22px; line-height: 1; }
+.tn { font-size: 9px; font-weight: 700; color: #ffffffcc; text-align: center; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; padding: 0 2px; }
+.ck { position: absolute; top: -5px; right: -5px; width: 15px; height: 15px;
+  border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 8px; }
+.ck.draw { background: var(--draw); }
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px;
+  border-radius: 7px; font-size: 10px; font-weight: 800; }
+.badge.ok { background: #22c55e15; color: var(--green); border: 1px solid #22c55e30; }
+.badge.no { background: #f8717115; color: var(--red); border: 1px solid #f8717130; }
+.badge.pend { background: #FFD70012; color: var(--gold); border: 1px solid #FFD70030; }
+.score-disp { font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #fff; }
+.sb-main { width: 100%; padding: 14px; border-radius: 14px; border: none;
+  background: linear-gradient(135deg, #004080, #FFD700); color: #000;
+  font-size: 15px; font-weight: 900; cursor: pointer; font-family: inherit; margin-top: 12px; }
+.done-banner { background: #22c55e18; border: 1px solid #22c55e33; border-radius: 12px;
+  padding: 12px; font-size: 13px; color: var(--green); font-weight: 700; text-align: center; margin-top: 10px; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-box { background: var(--card); border-radius: 14px; border: 1px solid;
+  padding: 11px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.lr { display: flex; align-items: center; gap: 10px; background: var(--card);
+  border-radius: 14px; border: 1px solid var(--border); padding: 11px 14px; margin-bottom: 8px; }
+.lr.me { border-color: #3b82f644; background: #3b82f610; }
+.gt { background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 14px; overflow: hidden; }
+.gr { display: grid; grid-template-columns: 20px 1fr 22px 22px 22px 22px 26px;
+  gap: 2px; padding: 8px 10px; border-bottom: 1px solid #ffffff07; align-items: center; font-size: 11px; }
+.gr:last-child { border-bottom: none; }
+.gr.q { background: #00408012; }
+.reg { position: fixed; inset: 0; z-index: 100; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 22px; overflow-y: auto; }
+.av { width: 46px; height: 46px; border-radius: 13px; font-size: 22px; border: 2px solid #ffffff15;
+  background: #ffffff08; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+.av.pk2 { border-color: var(--gold); background: #FFD70020; transform: scale(1.12); }
+.ri { width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid #ffffff18;
+  background: #ffffff08; color: #fff; font-size: 16px; font-family: inherit; outline: none; text-align: right; }
+.ri:focus { border-color: var(--gold); }
+.rb { width: 100%; max-width: 320px; padding: 14px; border-radius: 14px; border: none;
+  background: linear-gradient(135deg, #004080, var(--gold)); color: #000;
+  font-size: 16px; font-weight: 900; cursor: pointer; font-family: inherit; opacity: 0.35; transition: opacity 0.2s; }
+.rb:not(:disabled) { opacity: 1; }
+.pt2 { height: 4px; background: #ffffff10; border-radius: 10px; overflow: hidden; margin-top: 4px; }
+.pf { height: 100%; background: linear-gradient(90deg, #004080, var(--gold)); border-radius: 10px; transition: width 0.3s; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  display: inline-block; margin-right: 5px; animation: pulse 2s infinite; vertical-align: middle; }
+.sync-dot.off { background: #f87171; animation: none; }
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ffffff15;
+  border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+/* ── USER PICKS MODAL ── */
+.picks-overlay { position: fixed; inset: 0; z-index: 200; background: #000000cc;
+  display: flex; align-items: flex-end; justify-content: center; }
+.picks-sheet { background: #0a0a1e; border-radius: 24px 24px 0 0; border: 1px solid #ffffff15;
+  width: 100%; max-width: 480px; max-height: 82vh; overflow-y: auto; padding: 20px 16px 40px; }
+.picks-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.picks-close { margin-right: auto; background: none; border: none; color: #ffffff55; font-size: 24px; cursor: pointer; line-height: 1; }
+.pick-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+  border-radius: 11px; border: 1px solid #ffffff10; background: #ffffff06; margin-bottom: 6px; font-size: 12px; }
+.pick-row.correct { border-color: #22c55e44; background: #22c55e0a; }
+.pick-row.wrong { border-color: #f8717144; background: #f871710a; }
+.pick-row.pending { border-color: #FFD70033; background: #FFD7000a; }
+/* ── ADMIN PANEL ── */
+.admin-overlay { position: fixed; inset: 0; z-index: 200; background: #000000cc;
+  display: flex; align-items: flex-end; justify-content: center; }
+.admin-sheet { background: #0a0a1e; border-radius: 24px 24px 0 0; border: 1px solid #ff000033;
+  width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px 16px 40px; }
+.admin-title { font-size: 16px; font-weight: 900; color: #ff4444; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+.admin-close { margin-right: auto; background: none; border: none; color: #ffffff55; font-size: 22px; cursor: pointer; }
+.admin-match { background: #ffffff08; border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; border: 1px solid #ffffff10; }
+.admin-match-name { font-size: 12px; font-weight: 800; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.res-btns { display: flex; gap: 6px; align-items: center; }
+.res-btn { flex:1; padding: 7px 4px; border-radius: 9px; border: 1px solid #ffffff15;
+  background: #ffffff08; color: #ffffffaa; font-size: 11px; font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align:center; }
+.res-btn.active-h { background: #22c55e20; border-color: var(--green); color: var(--green); }
+.res-btn.active-d { background: #a78bfa20; border-color: var(--draw); color: var(--draw); }
+.res-btn.active-a { background: #f8717120; border-color: var(--red); color: var(--red); }
+.score-inputs { display: flex; gap: 6px; align-items: center; margin-top: 7px; }
+.score-inp { width: 44px; padding: 6px; border-radius: 8px; border: 1px solid #ffffff20;
+  background: #ffffff08; color: #fff; font-size: 16px; font-weight: 900; text-align: center; font-family: inherit; outline: none; }
+.score-inp:focus { border-color: var(--gold); }
+.admin-apply { flex:1; padding: 8px; border-radius: 9px; border: none;
+  background: linear-gradient(135deg, #004080, var(--gold)); color: #000;
+  font-size: 12px; font-weight: 900; cursor: pointer; font-family: inherit; }
+.admin-apply:disabled { opacity: 0.35; cursor: not-allowed; }
+.admin-reset-btn { width: 100%; padding: 13px; border-radius: 13px; border: none; margin-top: 8px;
+  font-size: 14px; font-weight: 900; cursor: pointer; font-family: inherit; }
+.admin-filter { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+.admin-filter::-webkit-scrollbar { display: none; }
+
+/* Admin password screen */
+.admin-pass { position: fixed; inset: 0; z-index: 300; background: #000000dd;
+  display: flex; align-items: center; justify-content: center; }
+.admin-pass-box { background: #0a0a1e; border-radius: 20px; border: 1px solid #ff000044;
+  padding: 28px 24px; width: 90%; max-width: 320px; text-align: center; }
+
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+@keyframes bounceIn { 0%{transform:scale(.8);opacity:0}80%{transform:scale(1.05)}100%{transform:scale(1);opacity:1} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+/* ── PWA INSTALL BUTTON ── */
+#pwaInstallBtn {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 50; display: none; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: 50px;
+  background: linear-gradient(135deg, #004080, #FFD700);
+  border: none; color: #000; font-size: 13px; font-weight: 900;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  box-shadow: 0 4px 20px #FFD70040;
+  animation: slideUp 0.4s ease;
+}
+#pwaInstallBtn.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- Registration -->
+<div id="regOverlay" class="reg">
+  <div style="font-size:52px;margin-bottom:12px;animation:bounceIn 0.5s ease">⚽</div>
+  <div style="font-size:26px;font-weight:900;text-align:center;margin-bottom:3px">מונדיאל 2026</div>
+  <div style="font-size:13px;color:var(--gold);font-weight:800;margin-bottom:3px">ניחוש תוצאות</div>
+  <div style="font-size:11px;color:#ffffff33;margin-bottom:20px">3 נקודות לכל ניחוש נכון · תוצאות חיות</div>
+  <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;max-width:320px" id="avGrid"></div>
+  <div style="width:100%;max-width:320px;margin-bottom:14px">
+    <input id="nameIn" class="ri" type="text" maxlength="16" placeholder="הכינוי שלך..." oninput="onNI()">
+  </div>
+  <button id="regBtn" class="rb" disabled onclick="register()">בואו לנחש! 🌍</button>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none">
+  <div class="bg-glow"></div>
+  <div id="toast" class="toast"></div>
+
+  <header class="header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <!-- Hidden admin trigger: tap logo 5x -->
+      <span style="font-size:24px;cursor:pointer;user-select:none" id="logoTap" onclick="tapLogo()">🌍</span>
+      <div>
+        <div style="font-size:16px;font-weight:900">מונדיאל 2026</div>
+        <div style="font-size:10px;color:#FFD70088;display:flex;align-items:center">
+          <span id="syncDot" class="sync-dot"></span><span id="syncLabel">מתחבר...</span>
+        </div>
+      </div>
+    </div>
+    <div id="uChip" style="font-size:22px;cursor:pointer" onclick="showProf()"></div>
+  </header>
+
+  <div class="content" id="content"></div>
+
+  <nav class="nav">
+    <button class="nav-btn active" id="tab-predict" onclick="setTab('predict')"><span class="nav-icon">🎯</span>ניחושים</button>
+    <button class="nav-btn" id="tab-knockout" onclick="setTab('knockout')"><span class="nav-icon">⚔️</span>נוקאאוט</button>
+    <button class="nav-btn" id="tab-groups" onclick="setTab('groups')"><span class="nav-icon">🏟️</span>גרופים</button>
+    <button class="nav-btn" id="tab-leaders" onclick="setTab('leaders')"><span class="nav-icon">🏆</span>דירוג</button>
+  </nav>
+</div>
+
+<!-- Admin Password Modal -->
+<div id="adminPassModal" class="admin-pass" style="display:none">
+  <div class="admin-pass-box">
+    <div style="font-size:32px;margin-bottom:10px">🔐</div>
+    <div style="font-size:16px;font-weight:900;margin-bottom:16px">פאנל מנהל</div>
+    <input id="passIn" class="ri" type="password" placeholder="סיסמה..." style="margin-bottom:12px;text-align:center"
+      onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#8b0000,#cc0000);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit">כניסה</button>
+    <button onclick="closeAdmin()" style="width:100%;padding:10px;border-radius:12px;border:none;background:transparent;color:#ffffff44;font-size:13px;cursor:pointer;font-family:inherit;margin-top:8px">ביטול</button>
+    <div id="passErr" style="color:var(--red);font-size:12px;margin-top:8px;display:none">❌ סיסמה שגויה</div>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" class="admin-overlay" style="display:none" onclick="e=>e.target===this&&closeAdmin()">
+  <div class="admin-sheet" style="animation:slideUp 0.3s ease">
+    <div class="admin-title">
+      <span>🛠️</span><span>פאנל מנהל</span>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div style="font-size:11px;color:#ff666688;margin-bottom:16px">עדכון ידני של תוצאות לבדיקה</div>
+
+    <!-- Filter by group -->
+    <div class="admin-filter" id="adminFilter"></div>
+
+    <div id="adminMatchList"></div>
+
+    <div style="border-top:1px solid #ffffff10;margin-top:16px;padding-top:16px">
+      <div style="font-size:12px;font-weight:800;color:#ff4444;margin-bottom:10px">⚠️ איפוס נתונים</div>
+      <button class="admin-reset-btn" style="background:#ff000015;color:var(--red);border:1px solid #ff000033"
+        onclick="resetResults()">🗑️ איפוס תוצאות בלבד</button>
+      <button class="admin-reset-btn" style="background:#ff000030;color:#ff6666;border:1px solid #ff000055;margin-top:6px"
+        onclick="resetAll()">💥 איפוס מלא (תוצאות + משתמשים)</button>
+    </div>
+  </div>
+</div>
+
+<!-- PWA Install Button -->
+<button id="pwaInstallBtn" onclick="pwaTriggerInstall()">
+  📲 התקן אפליקציה
+</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc,
+  collection, onSnapshot, query, orderBy, limit, serverTimestamp, writeBatch }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey: "AIzaSyDE_rjCkRLCI6tw6DlR8wNtlRrx_7NyAXI",
+  authDomain: "worldcup-6cf65.firebaseapp.com",
+  projectId: "worldcup-6cf65",
+  storageBucket: "worldcup-6cf65.firebasestorage.app",
+  messagingSenderId: "213029765567",
+  appId: "1:213029765567:web:1a28a136a8ea8bdbe1e10a"
+});
+const db = getFirestore(fbApp);
+
+// ── DATA ──
+const GRP = {
+  A:{t:['מקסיקו','דרום אפריקה','קוריאה',"צ'כיה"],f:['🇲🇽','🇿🇦','🇰🇷','🇨🇿']},
+  B:{t:['קנדה','בוסניה','קטר','שוויץ'],f:['🇨🇦','🇧🇦','🇶🇦','🇨🇭']},
+  C:{t:['ברזיל','מרוקו','האיטי','סקוטלנד'],f:['🇧🇷','🇲🇦','🇭🇹','🏴󠁧󠁢󠁳󠁣󠁴󠁿']},
+  D:{t:['ארה"ב','פרגוואי','אוסטרליה','טורקיה'],f:['🇺🇸','🇵🇾','🇦🇺','🇹🇷']},
+  E:{t:['גרמניה','קוראסאו','חוף השנהב','אקוודור'],f:['🇩🇪','🇨🇼','🇨🇮','🇪🇨']},
+  F:{t:['הולנד','יפן','שוודיה','תוניסיה'],f:['🇳🇱','🇯🇵','🇸🇪','🇹🇳']},
+  G:{t:['בלגיה','מצרים','איראן','ניו זילנד'],f:['🇧🇪','🇪🇬','🇮🇷','🇳🇿']},
+  H:{t:['ספרד','כף ורדה','סעודיה','אורוגוואי'],f:['🇪🇸','🇨🇻','🇸🇦','🇺🇾']},
+  I:{t:['צרפת','סנגל','עיראק','נורווגיה'],f:['🇫🇷','🇸🇳','🇮🇶','🇳🇴']},
+  J:{t:['ארגנטינה',"אלג'יריה",'אוסטריה','ירדן'],f:['🇦🇷','🇩🇿','🇦🇹','🇯🇴']},
+  K:{t:['פורטוגל','קונגו DR','אוזבקיסטן','קולומביה'],f:['🇵🇹','🇨🇩','🇺🇿','🇨🇴']},
+  L:{t:['אנגליה','קרואטיה','גאנה','פנמה'],f:['🏴󠁧󠁢󠁥󠁮󠁧󠁿','🇭🇷','🇬🇭','🇵🇦']},
+};
+
+const MX = [
+  {id:1,g:'A',h:'מקסיקו',a:'דרום אפריקה',d:'11/06',md:1},
+  {id:2,g:'A',h:'קוריאה',a:"צ'כיה",d:'11/06',md:1},
+  {id:3,g:'B',h:'קנדה',a:'בוסניה',d:'12/06',md:1},
+  {id:4,g:'B',h:'קטר',a:'שוויץ',d:'13/06',md:1},
+  {id:5,g:'C',h:'ברזיל',a:'מרוקו',d:'13/06',md:1},
+  {id:6,g:'C',h:'האיטי',a:'סקוטלנד',d:'13/06',md:1},
+  {id:7,g:'D',h:'ארה"ב',a:'פרגוואי',d:'12/06',md:1},
+  {id:8,g:'D',h:'אוסטרליה',a:'טורקיה',d:'13/06',md:1},
+  {id:9,g:'E',h:'גרמניה',a:'קוראסאו',d:'14/06',md:1},
+  {id:10,g:'E',h:'חוף השנהב',a:'אקוודור',d:'14/06',md:1},
+  {id:11,g:'F',h:'הולנד',a:'יפן',d:'14/06',md:1},
+  {id:12,g:'F',h:'שוודיה',a:'תוניסיה',d:'14/06',md:1},
+  {id:13,g:'G',h:'בלגיה',a:'מצרים',d:'15/06',md:1},
+  {id:14,g:'G',h:'איראן',a:'ניו זילנד',d:'15/06',md:1},
+  {id:15,g:'H',h:'ספרד',a:'כף ורדה',d:'15/06',md:1},
+  {id:16,g:'H',h:'סעודיה',a:'אורוגוואי',d:'15/06',md:1},
+  {id:17,g:'I',h:'צרפת',a:'סנגל',d:'16/06',md:1},
+  {id:18,g:'I',h:'עיראק',a:'נורווגיה',d:'16/06',md:1},
+  {id:19,g:'J',h:'ארגנטינה',a:"אלג'יריה",d:'16/06',md:1},
+  {id:20,g:'J',h:'אוסטריה',a:'ירדן',d:'16/06',md:1},
+  {id:21,g:'K',h:'פורטוגל',a:'קונגו DR',d:'17/06',md:1},
+  {id:22,g:'K',h:'אוזבקיסטן',a:'קולומביה',d:'17/06',md:1},
+  {id:23,g:'L',h:'אנגליה',a:'קרואטיה',d:'17/06',md:1},
+  {id:24,g:'L',h:'גאנה',a:'פנמה',d:'17/06',md:1},
+  {id:25,g:'A',h:'מקסיקו',a:'קוריאה',d:'18/06',md:2},
+  {id:26,g:'A',h:'דרום אפריקה',a:"צ'כיה",d:'18/06',md:2},
+  {id:27,g:'B',h:'קנדה',a:'קטר',d:'18/06',md:2},
+  {id:28,g:'B',h:'בוסניה',a:'שוויץ',d:'18/06',md:2},
+  {id:29,g:'C',h:'ברזיל',a:'האיטי',d:'19/06',md:2},
+  {id:30,g:'C',h:'מרוקו',a:'סקוטלנד',d:'19/06',md:2},
+  {id:31,g:'D',h:'ארה"ב',a:'אוסטרליה',d:'19/06',md:2},
+  {id:32,g:'D',h:'פרגוואי',a:'טורקיה',d:'19/06',md:2},
+  {id:33,g:'E',h:'גרמניה',a:'חוף השנהב',d:'20/06',md:2},
+  {id:34,g:'E',h:'קוראסאו',a:'אקוודור',d:'20/06',md:2},
+  {id:35,g:'F',h:'הולנד',a:'שוודיה',d:'20/06',md:2},
+  {id:36,g:'F',h:'יפן',a:'תוניסיה',d:'20/06',md:2},
+  {id:37,g:'G',h:'בלגיה',a:'איראן',d:'21/06',md:2},
+  {id:38,g:'G',h:'מצרים',a:'ניו זילנד',d:'21/06',md:2},
+  {id:39,g:'H',h:'ספרד',a:'סעודיה',d:'21/06',md:2},
+  {id:40,g:'H',h:'כף ורדה',a:'אורוגוואי',d:'21/06',md:2},
+  {id:41,g:'J',h:'ארגנטינה',a:'אוסטריה',d:'22/06',md:2},
+  {id:42,g:'J',h:"אלג'יריה",a:'ירדן',d:'22/06',md:2},
+  {id:43,g:'I',h:'צרפת',a:'עיראק',d:'22/06',md:2},
+  {id:44,g:'I',h:'סנגל',a:'נורווגיה',d:'22/06',md:2},
+  {id:45,g:'K',h:'פורטוגל',a:'אוזבקיסטן',d:'23/06',md:2},
+  {id:46,g:'K',h:'קונגו DR',a:'קולומביה',d:'23/06',md:2},
+  {id:47,g:'L',h:'אנגליה',a:'גאנה',d:'23/06',md:2},
+  {id:48,g:'L',h:'קרואטיה',a:'פנמה',d:'23/06',md:2},
+  {id:49,g:'A',h:'מקסיקו',a:"צ'כיה",d:'26/06',md:3},
+  {id:50,g:'A',h:'דרום אפריקה',a:'קוריאה',d:'26/06',md:3},
+  {id:51,g:'B',h:'קנדה',a:'שוויץ',d:'26/06',md:3},
+  {id:52,g:'B',h:'בוסניה',a:'קטר',d:'26/06',md:3},
+  {id:53,g:'C',h:'ברזיל',a:'סקוטלנד',d:'27/06',md:3},
+  {id:54,g:'C',h:'מרוקו',a:'האיטי',d:'27/06',md:3},
+  {id:55,g:'D',h:'ארה"ב',a:'טורקיה',d:'27/06',md:3},
+  {id:56,g:'D',h:'אוסטרליה',a:'פרגוואי',d:'27/06',md:3},
+  {id:57,g:'E',h:'גרמניה',a:'אקוודור',d:'25/06',md:3},
+  {id:58,g:'E',h:'חוף השנהב',a:'קוראסאו',d:'25/06',md:3},
+  {id:59,g:'F',h:'הולנד',a:'תוניסיה',d:'25/06',md:3},
+  {id:60,g:'F',h:'שוודיה',a:'יפן',d:'25/06',md:3},
+  {id:61,g:'H',h:'ספרד',a:'אורוגוואי',d:'25/06',md:3},
+  {id:62,g:'H',h:'כף ורדה',a:'סעודיה',d:'25/06',md:3},
+  {id:63,g:'G',h:'בלגיה',a:'ניו זילנד',d:'25/06',md:3},
+  {id:64,g:'G',h:'מצרים',a:'איראן',d:'25/06',md:3},
+  {id:65,g:'J',h:'ארגנטינה',a:'ירדן',d:'26/06',md:3},
+  {id:66,g:'J',h:'אוסטריה',a:"אלג'יריה",d:'26/06',md:3},
+  {id:67,g:'I',h:'צרפת',a:'נורווגיה',d:'26/06',md:3},
+  {id:68,g:'I',h:'סנגל',a:'עיראק',d:'26/06',md:3},
+  {id:69,g:'K',h:'פורטוגל',a:'קולומביה',d:'26/06',md:3},
+  {id:70,g:'K',h:'קונגו DR',a:'אוזבקיסטן',d:'26/06',md:3},
+  {id:71,g:'L',h:'אנגליה',a:'פנמה',d:'26/06',md:3},
+  {id:72,g:'L',h:'גאנה',a:'קרואטיה',d:'26/06',md:3},
+];
+
+const EN2HE = {
+  'Mexico':'מקסיקו','South Africa':'דרום אפריקה','South Korea':'קוריאה','Korea Republic':'קוריאה',
+  'Czech Republic':"צ'כיה",'Czechia':"צ'כיה",'Canada':'קנדה','Bosnia and Herzegovina':'בוסניה',
+  'Bosnia':'בוסניה','Qatar':'קטר','Switzerland':'שוויץ','Brazil':'ברזיל','Morocco':'מרוקו',
+  'Haiti':'האיטי','Scotland':'סקוטלנד','United States':'ארה"ב','USA':'ארה"ב',
+  'Paraguay':'פרגוואי','Australia':'אוסטרליה','Turkey':'טורקיה','Türkiye':'טורקיה',
+  'Germany':'גרמניה','Curaçao':'קוראסאו','Curacao':'קוראסאו','Ivory Coast':'חוף השנהב',
+  "Côte d'Ivoire":"חוף השנהב",'Ecuador':'אקוודור','Netherlands':'הולנד','Japan':'יפן',
+  'Sweden':'שוודיה','Tunisia':'תוניסיה','Belgium':'בלגיה','Egypt':'מצרים','Iran':'איראן',
+  'New Zealand':'ניו זילנד','Spain':'ספרד','Cape Verde':'כף ורדה','Saudi Arabia':'סעודיה',
+  'Uruguay':'אורוגוואי','France':'צרפת','Senegal':'סנגל','Iraq':'עיראק','Norway':'נורווגיה',
+  'Argentina':'ארגנטינה','Algeria':"אלג'יריה",'Austria':'אוסטריה','Jordan':'ירדן',
+  'Portugal':'פורטוגל','DR Congo':'קונגו DR','Congo DR':'קונגו DR',
+  'Uzbekistan':'אוזבקיסטן','Colombia':'קולומביה','England':'אנגליה',
+  'Croatia':'קרואטיה','Ghana':'גאנה','Panama':'פנמה',
+};
+
+// ── GROUP NUMBER HELPER ──
+const GRP_KEYS = Object.keys({A:1,B:1,C:1,D:1,E:1,F:1,G:1,H:1,I:1,J:1,K:1,L:1});
+function gNum(g){ return GRP_KEYS.indexOf(g)+1; }
+
+// ── STATE ──
+let cur=null, P={}, KP={}, SUB={}, RESULTS={}, SCORES={}, LB=[];
+let aG='A', aMD=1, aAV='⚽', adminG='A';
+let fbUnsubLB=null, fbUnsubRes=null;
+let logoTaps=0, logoTimer=null;
+const AVS=['⚽','🏆','🥅','🧤','🎽','🏅','🌍','🦁','🦅','🐆','🔥','⭐'];
+const PTS=3;
+const ADMIN_PASS='1971';
+
+// ── ADMIN ──
+function tapLogo() {
+  logoTaps++;
+  clearTimeout(logoTimer);
+  if (logoTaps>=5) { logoTaps=0; openAdminPass(); return; }
+  logoTimer = setTimeout(()=>logoTaps=0, 2000);
+}
+function openAdminPass() {
+  document.getElementById('adminPassModal').style.display='flex';
+  document.getElementById('passIn').value='';
+  document.getElementById('passErr').style.display='none';
+  setTimeout(()=>document.getElementById('passIn').focus(),100);
+}
+function checkPass() {
+  const v=document.getElementById('passIn').value;
+  if(v===ADMIN_PASS){
+    document.getElementById('adminPassModal').style.display='none';
+    openAdminPanel();
+  } else {
+    document.getElementById('passErr').style.display='block';
+    document.getElementById('passIn').value='';
+  }
+}
+function openAdminPanel() {
+  document.getElementById('adminPanel').style.display='flex';
+  renderAdminFilter();
+  renderAdminMatches();
+}
+function closeAdmin() {
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('adminPassModal').style.display='none';
+}
+
+function renderAdminFilter() {
+  const f=document.getElementById('adminFilter');
+  f.innerHTML='';
+  Object.keys(GRP).forEach(g=>{
+    const b=document.createElement('button');
+    b.className='pill'+(g===adminG?' active':'');
+    b.textContent=`בית ${gNum(g)}`;
+    b.onclick=()=>{ adminG=g; renderAdminFilter(); renderAdminMatches(); };
+    f.appendChild(b);
+  });
+}
+
+function renderAdminMatches() {
+  const list=document.getElementById('adminMatchList');
+  const gm=MX.filter(m=>m.g===adminG);
+  list.innerHTML=`<div style="font-size:11px;color:#ffffff44;margin-bottom:10px;font-weight:700">בית ${gNum(adminG)} · ${gm.length} משחקים</div>`;
+  gm.forEach(m=>{
+    const curR=RESULTS[m.id], curS=SCORES[m.id];
+    const hf=flag(m.h), af=flag(m.a);
+    list.innerHTML+=`
+    <div class="admin-match" id="am_${m.id}">
+      <div class="admin-match-name">
+        <span>${hf} ${m.h} vs ${m.a} ${af}</span>
+        <span style="font-size:10px;color:#ffffff33">📅 ${m.d}</span>
+      </div>
+      <div class="res-btns">
+        <button class="res-btn ${curR==='h'?'active-h':''}" id="rb_h_${m.id}" onclick="setAdminRes(${m.id},'h')">${hf} ניצחון</button>
+        <button class="res-btn ${curR==='d'?'active-d':''}" id="rb_d_${m.id}" onclick="setAdminRes(${m.id},'d')">🤝 תיקו</button>
+        <button class="res-btn ${curR==='a'?'active-a':''}" id="rb_a_${m.id}" onclick="setAdminRes(${m.id},'a')">${af} ניצחון</button>
+      </div>
+      <div class="score-inputs">
+        <span style="font-size:11px;color:#ffffff55;flex:1">${hf} ניקוד:</span>
+        <input class="score-inp" id="sh_${m.id}" type="number" min="0" max="20" value="${curS?curS.h:''}" placeholder="0">
+        <span style="font-size:14px;color:#ffffff44">–</span>
+        <input class="score-inp" id="sa_${m.id}" type="number" min="0" max="20" value="${curS?curS.a:''}" placeholder="0">
+        <button class="admin-apply" onclick="applyResult(${m.id},'${m.h}','${m.a}')">✓ שמור</button>
+      </div>
+      ${curR?`<div style="margin-top:6px;font-size:10px;color:#22c55e88;font-weight:700">✓ תוצאה קיימת: ${resultLabel(curR,m)} ${curS?`(${curS.h}–${curS.a})`:''}  <button onclick="clearResult(${m.id})" style="border:none;background:none;color:#f8717188;font-size:10px;cursor:pointer;font-family:inherit">× מחק</button></div>`:''}
+    </div>`;
+  });
+}
+
+// Track pending admin result per match
+const adminPicks={};
+function setAdminRes(id,r){
+  adminPicks[id]=r;
+  ['h','d','a'].forEach(x=>{
+    const b=document.getElementById(`rb_${x}_${id}`);
+    if(!b)return;
+    b.className='res-btn'+(r===x?` active-${x}`:'');
+  });
+}
+
+async function applyResult(id, hName, aName) {
+  const r=adminPicks[id]||RESULTS[id];
+  const hVal=parseInt(document.getElementById(`sh_${id}`).value);
+  const aVal=parseInt(document.getElementById(`sa_${id}`).value);
+  if(!r){ toast('⚠️ בחר תוצאה קודם','#f59e0b'); return; }
+  // Auto-detect result from score if both entered
+  let finalR=r;
+  if(!isNaN(hVal)&&!isNaN(aVal)){
+    finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
+  }
+  RESULTS[id]=finalR;
+  if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
+  await saveResults();
+  await recalcAllUsers();
+  renderAdminMatches();
+  render();
+  toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
+}
+
+async function clearResult(id){
+  delete RESULTS[id]; delete SCORES[id]; delete adminPicks[id];
+  await saveResults();
+  await recalcAllUsers();
+  renderAdminMatches(); render();
+  toast('🗑️ תוצאה נמחקה','#f59e0b');
+}
+
+async function saveResults(){
+  await setDoc(doc(db,'meta','results'),{RESULTS,SCORES,updatedAt:serverTimestamp()});
+}
+
+async function recalcAllUsers(){
+  const snap=await getDocs(collection(db,'users'));
+  const batch=writeBatch(db);
+  snap.docs.forEach(d=>{
+    const u=d.data();
+    const pts=calcPts(u.P||{});
+    batch.update(doc(db,'users',d.id),{pts,updatedAt:serverTimestamp()});
+  });
+  await batch.commit();
+}
+
+async function resetResults(){
+  if(!confirm('למחוק את כל התוצאות?'))return;
+  RESULTS={}; SCORES={};
+  await setDoc(doc(db,'meta','results'),{RESULTS:{},SCORES:{},updatedAt:serverTimestamp()});
+  await recalcAllUsers();
+  renderAdminMatches(); render();
+  toast('🗑️ תוצאות אופסו','#f59e0b');
+}
+
+async function resetAll(){
+  if(!confirm('למחוק את כל המשתמשים והתוצאות? פעולה בלתי הפיכה!'))return;
+  RESULTS={}; SCORES={};
+  await setDoc(doc(db,'meta','results'),{RESULTS:{},SCORES:{},updatedAt:serverTimestamp()});
+  const snap=await getDocs(collection(db,'users'));
+  const batch=writeBatch(db);
+  snap.docs.forEach(d=>batch.delete(doc(db,'users',d.id)));
+  await batch.commit();
+  // Reset local user too
+  P={}; KP={}; SUB={};
+  if(cur){ saveLocal(); }
+  LB=[];
+  renderAdminMatches(); render();
+  toast('💥 כל הנתונים אופסו','#f87171');
+}
+
+// ── TheSportsDB ──
+async function fetchResults(){
+  try{
+    const r=await fetch('https://www.thesportsdb.com/api/v1/json/123/eventsseason.php?id=4429&s=2026-2027');
+    const data=await r.json();
+    if(!data.events)return;
+    let changed=false;
+    data.events.forEach(ev=>{
+      const hSc=parseInt(ev.intHomeScore),aSc=parseInt(ev.intAwayScore);
+      if(isNaN(hSc)||isNaN(aSc)||ev.strStatus!=='Match Finished')return;
+      const hHe=EN2HE[ev.strHomeTeam],aHe=EN2HE[ev.strAwayTeam];
+      if(!hHe||!aHe)return;
+      const match=MX.find(m=>(m.h===hHe&&m.a===aHe)||(m.h===aHe&&m.a===hHe));
+      if(!match)return;
+      const flipped=match.h===aHe;
+      const rH=flipped?aSc:hSc,rA=flipped?hSc:aSc;
+      const res=rH>rA?'h':rA>rH?'a':'d';
+      if(RESULTS[match.id]!==res){RESULTS[match.id]=res;SCORES[match.id]={h:rH,a:rA};changed=true;}
+    });
+    if(changed){await saveResults();await recalcAllUsers();render();}
+    setSyncOnline(true);
+  }catch(e){console.warn('API error',e);}
+}
+
+async function loadResultsFS(){
+  try{
+    const s=await getDoc(doc(db,'meta','results'));
+    if(s.exists()){const d=s.data();RESULTS=d.RESULTS||{};SCORES=d.SCORES||{};}
+  }catch(e){}
+}
+
+function listenResults(){
+  if(fbUnsubRes)fbUnsubRes();
+  fbUnsubRes=onSnapshot(doc(db,'meta','results'),s=>{
+    if(s.exists()){const d=s.data();RESULTS=d.RESULTS||{};SCORES=d.SCORES||{};recalcPts();render();}
+  });
+}
+
+// ── SCORING ──
+function calcPts(userP){
+  return Object.entries(userP||{}).reduce((s,[id,p])=>RESULTS[id]&&RESULTS[id]===p?s+PTS:s,0);
+}
+function recalcPts(){
+  if(!cur)return;
+  const pts=calcPts(P),n=Object.keys(P).length+Object.keys(KP).length;
+  setDoc(doc(db,'users',cur.id),{pts,n,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+}
+function matchStatus(id){
+  const r=RESULTS[id],p=P[id];
+  if(!r)return 'future';
+  if(!p)return 'missed';
+  return r===p?'correct':'wrong';
+}
+
+// ── FIREBASE ──
+async function fbSave(){
+  if(!cur)return;
+  try{
+    await setDoc(doc(db,'users',cur.id),{
+      nm:cur.nm,av:cur.av,P,KP,SUB,
+      pts:calcPts(P),n:Object.keys(P).length+Object.keys(KP).length,
+      updatedAt:serverTimestamp()
+    });
+    setSyncOnline(true);
+  }catch(e){setSyncOnline(false);}
+}
+async function fbLoad(uid){
+  try{
+    const s=await getDoc(doc(db,'users',uid));
+    if(s.exists()){const d=s.data();P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};setSyncOnline(true);return true;}
+  }catch(e){setSyncOnline(false);}
+  return false;
+}
+function fbListenLB(){
+  if(fbUnsubLB)fbUnsubLB();
+  const q=query(collection(db,'users'),orderBy('pts','desc'),limit(50));
+  fbUnsubLB=onSnapshot(q,s=>{LB=s.docs.map(d=>({id:d.id,...d.data()}));setSyncOnline(true);if(window._tab==='leaders')render();},()=>setSyncOnline(false));
+}
+function setSyncOnline(on){
+  const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLabel');
+  if(dot)dot.className='sync-dot'+(on?'':' off');
+  if(lbl)lbl.textContent=on?'מחובר לענן ☁️':'אופליין';
+}
+
+// ── LOCAL ──
+function saveLocal(){if(cur)localStorage.setItem('wc26_v3',JSON.stringify({cur,P,KP,SUB}));}
+function loadLocal(){
+  try{const d=JSON.parse(localStorage.getItem('wc26_v3'));if(!d)return false;
+    cur=d.cur;P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};return true;}catch{return false;}
+}
+async function save(){saveLocal();await fbSave();}
+
+// ── HELPERS ──
+function flag(t){for(const g of Object.values(GRP)){const i=g.t.indexOf(t);if(i>=0)return g.f[i];}return '🏳️';}
+function pickLabel(p,m){return p==='h'?m.h:p==='a'?m.a:'🤝 תיקו';}
+function resultLabel(r,m){return r==='h'?`ניצחון ${m.h}`:r==='a'?`ניצחון ${m.a}`:'תיקו';}
+function standings(gk){
+  return GRP[gk].t.map((t,i)=>{
+    let pts=0,w=0,d=0,l=0,pl=0;
+    MX.filter(m=>(m.h===t||m.a===t)&&m.g===gk).forEach(m=>{
+      const r=RESULTS[m.id];if(!r)return;pl++;
+      const ih=m.h===t;
+      if(r==='d'){d++;pts+=1;}else if((r==='h'&&ih)||(r==='a'&&!ih)){w++;pts+=3;}else l++;
+    });
+    return{t,f:GRP[gk].f[i],pl,w,d,l,pts};
+  }).sort((a,b)=>b.pts-a.pts||b.w-a.w);
+}
+
+// ── REG ──
+function initReg(){
+  const g=document.getElementById('avGrid');
+  AVS.forEach(a=>{
+    const b=document.createElement('button');b.className='av'+(a===aAV?' pk2':'');b.textContent=a;
+    b.onclick=()=>{aAV=a;g.querySelectorAll('.av').forEach(x=>x.classList.remove('pk2'));b.classList.add('pk2');};
+    g.appendChild(b);
+  });
+}
+function onNI(){document.getElementById('regBtn').disabled=document.getElementById('nameIn').value.trim().length<2;}
+async function register(){
+  const nm=document.getElementById('nameIn').value.trim();if(nm.length<2)return;
+  const newId='u_'+nm.toLowerCase().replace(/\s+/g,'_');
+
+  // Check if name exists — if it's the same user, let them in. If different user, block.
+  try{
+    const snap=await getDoc(doc(db,'users',newId));
+    if(snap.exists()){
+      // Same user returning — load their data and welcome back
+      cur={id:newId,nm,av:aAV};
+      document.getElementById('regOverlay').style.display='none';
+      document.getElementById('app').style.display='flex';
+      document.getElementById('uChip').textContent=cur.av;
+      const d=snap.data();
+      P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};
+      saveLocal();
+      fbListenLB();listenResults();render();
+      fetchResults();
+      setInterval(fetchResults,5*60*1000);
+      toast(`ברוך שובך, ${nm}! ⚽`,'#3b82f6');
+      return;
+    }
+  }catch(e){}
+
+  cur={id:newId,nm,av:aAV};
+
+  document.getElementById('regOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('uChip').textContent=cur.av;
+  saveLocal();
+  await fbSave();
+  fbListenLB();listenResults();render();
+  toast(`ברוך הבא, ${nm}! ⚽`);
+}
+function showProf(){
+  const pts=calcPts(P),correct=Object.entries(P).filter(([id,p])=>RESULTS[id]&&RESULTS[id]===p).length;
+  toast(`${cur.av} ${cur.nm} · ${pts} נק' · ${correct} נכונים`,'#3b82f6');
+}
+
+async function showUserPicks(uid,nm,av){
+  // Fetch user data from Firebase
+  let uP={};
+  try{
+    const s=await getDoc(doc(db,'users',uid));
+    if(s.exists()) uP=s.data().P||{};
+  }catch(e){ toast('שגיאה בטעינת ניחושים','#f87171'); return; }
+
+  const pickedMatches=MX.filter(m=>uP[m.id]!==undefined);
+  if(!pickedMatches.length){ toast(`${nm} עוד לא ניחש ⚽`,'#FFD700'); return; }
+
+  const correct=pickedMatches.filter(m=>RESULTS[m.id]&&RESULTS[m.id]===uP[m.id]).length;
+  const total=pickedMatches.length;
+
+  let rows='';
+  pickedMatches.forEach(m=>{
+    const pick=uP[m.id];
+    const res=RESULTS[m.id];
+    const cls=!res?'pending':res===pick?'correct':'wrong';
+    const icon=!res?'⏳':res===pick?'✅':'❌';
+    const pickLabel=pick==='h'?m.h:pick==='a'?m.a:'🤝 תיקו';
+    rows+=`<div class="pick-row ${cls}">
+      <span style="font-size:15px">${flag(m.h)}</span>
+      <span style="flex:1;font-weight:700">${m.h} – ${m.a}</span>
+      <span style="font-size:15px">${flag(m.a)}</span>
+      <span style="margin-right:6px;font-size:11px;color:#ffffffaa">${pickLabel}</span>
+      <span>${icon}</span>
+    </div>`;
+  });
+
+  const html=`<div class="picks-overlay" id="picksOverlay" onclick="if(event.target===this)closePicks()">
+    <div class="picks-sheet">
+      <div class="picks-header">
+        <span style="font-size:26px">${av||'⚽'}</span>
+        <div>
+          <div style="font-size:15px;font-weight:900">${nm}</div>
+          <div style="font-size:11px;color:#ffffff66">${total} ניחושים · ${correct} נכונים</div>
+        </div>
+        <button class="picks-close" onclick="closePicks()">✕</button>
+      </div>
+      ${rows}
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function closePicks(){
+  const el=document.getElementById('picksOverlay');
+  if(el)el.remove();
+}
+
+// ── CORE ──
+function toast(msg,col='#22c55e'){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.background=col;t.style.display='block';
+  clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2800);
+}
+function setTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  window._tab=tab;render();
+}
+function render(){
+  const c=document.getElementById('content'),t=window._tab||'predict';
+  if(t==='predict')c.innerHTML=rPredict();
+  else if(t==='knockout')c.innerHTML=rKO();
+  else if(t==='groups')c.innerHTML=rGroups();
+  else c.innerHTML=rLeaders();
+}
+
+// ── PREDICT ──
+function rPredict(){
+  const key=`${aMD}_${aG}`,gm=MX.filter(m=>m.g===aG&&m.md===aMD),done=SUB[key];
+  const filled=gm.filter(m=>P[m.id]!==undefined).length;
+  let h='<div class="pills">';
+  Object.keys(GRP).forEach(g=>{
+    const ok=[1,2,3].every(md=>SUB[`${md}_${g}`]);
+    h+=`<button class="pill ${g===aG?'active':''}" onclick="sG('${g}')">${ok?'✅':''}בית ${gNum(g)}</button>`;
+  });
+  h+='</div><div class="pills" style="margin-top:-6px">';
+  [1,2,3].forEach(md=>{
+    const ok=SUB[`${md}_${aG}`];
+    h+=`<button class="pill ${md===aMD?'active':''}" onclick="sMD(${md})">${ok?'✅':''}מחזור ${md}</button>`;
+  });
+  h+=`</div><div class="sl">⚽ בית ${gNum(aG)} · מחזור ${aMD}</div>`;
+  gm.forEach(m=>{h+=rMC(m,done);});
+  if(!done){
+    const pct=gm.length?Math.round(filled/gm.length*100):0;
+    h+=`<div style="margin-top:12px">
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:5px">${filled}/${gm.length} נבחרו</div>
+      <div class="pt2"><div class="pf" style="width:${pct}%"></div></div>
+    </div><button class="sb-main" onclick="subG()">שלח ניחושים 🎯</button>`;
+  } else {
+    h+=`<div class="done-banner">✅ בית ${gNum(aG)} מחזור ${aMD} נשלח!</div>`;
+  }
+  return h;
+}
+
+function rMC(m,lock){
+  const p=P[m.id],r=RESULTS[m.id],sc=SCORES[m.id],st=matchStatus(m.id);
+  let cardCls='mc';
+  if(st==='correct')cardCls+=' correct';
+  else if(st==='wrong')cardCls+=' wrong';
+  else if(p!==undefined)cardCls+=' pk';
+  const scoreStr=sc?`<span class="score-disp">${sc.h}–${sc.a}</span>`:'';
+  let badge='';
+  if(r&&p!==undefined){
+    badge=st==='correct'?`<span class="badge ok">✓ +${PTS} נק'</span>`:`<span class="badge no">✗ ${resultLabel(r,m)}</span>`;
+  }else if(r&&p===undefined){
+    badge=`<span class="badge pend">⚽ ${resultLabel(r,m)}</span>`;
+  }
+  const dis=lock?'disabled':'';
+  return `<div class="${cardCls}">
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:9px">
+      <span style="color:#FFD70088;font-weight:700">📅 ${m.d}</span>
+      <span style="display:flex;align-items:center;gap:6px">${scoreStr}${badge}</span>
+      <span style="color:#ffffff22;font-weight:700">בית ${gNum(m.g)}</span>
+    </div>
+    <div class="tr3">
+      <button class="tb ${p==='h'?'sel-h':''} ${r==='h'?'res':''}" ${dis} onclick="pM(${m.id},'h')" style="flex:2">
+        ${p==='h'?'<span class="ck">✓</span>':''}
+        <span class="tf">${flag(m.h)}</span><span class="tn">${m.h}</span>
+      </button>
+      <button class="tb ${p==='d'?'sel-d':''} ${r==='d'?'res':''}" ${dis} onclick="pM(${m.id},'d')" style="flex:1;${p==='d'?'border-color:var(--draw)':''}">
+        ${p==='d'?'<span class="ck draw">✓</span>':''}
+        <span style="font-size:18px">🤝</span><span class="tn" style="color:${p==='d'?'var(--draw)':'#ffffff44'}">תיקו</span>
+      </button>
+      <button class="tb ${p==='a'?'sel-a':''} ${r==='a'?'res':''}" ${dis} onclick="pM(${m.id},'a')" style="flex:2">
+        ${p==='a'?'<span class="ck">✓</span>':''}
+        <span class="tf">${flag(m.a)}</span><span class="tn">${m.a}</span>
+      </button>
+    </div>
+    ${p!==undefined?`<div style="margin-top:8px;font-size:11px;color:${st==='correct'?'var(--green)':st==='wrong'?'var(--red)':'#FFD700aa'};text-align:center;font-weight:700;padding-top:7px;border-top:1px solid #ffffff0a">
+      ${st==='correct'?'✓ ניחוש נכון!':st==='wrong'?'✗ ניחוש שגוי':'→ ניחוש: '+pickLabel(p,m)}</div>`:''}
+  </div>`;
+}
+
+function sG(g){aG=g;render();}
+function sMD(md){aMD=md;render();}
+function pM(id,s){
+  if(SUB[`${aMD}_${aG}`])return;
+  if(P[id]===s)delete P[id]; else P[id]=s;
+  save();render();
+}
+function subG(){
+  const gm=MX.filter(m=>m.g===aG&&m.md===aMD);
+  if(gm.some(m=>P[m.id]===undefined)){toast('⚠️ בחר תוצאה לכל המשחקים','#f59e0b');return;}
+  SUB[`${aMD}_${aG}`]=true;save();render();toast('✅ ניחושים נשלחו!');
+}
+
+// ── KNOCKOUT ──
+function rKO(){
+  const allDone=Object.keys(GRP).every(g=>[1,2,3].every(md=>SUB[`${md}_${g}`]));
+  let h=`<div class="card" style="text-align:center;padding:20px 16px">
+    <div style="font-size:32px;margin-bottom:10px">⚔️</div>
+    <div style="font-size:15px;font-weight:900;margin-bottom:6px">שלב הנוקאאוט</div>`;
+  if(!allDone){
+    h+=`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7">השלם קודם את כל ניחושי שלב הבתים</div>
+      <button onclick="setTab('predict')" style="padding:11px 22px;border-radius:12px;border:none;background:linear-gradient(135deg,#004080,var(--gold));color:#000;font-weight:900;cursor:pointer;font-family:inherit;font-size:13px">לניחושי הבתים 🎯</button>`;
+  }else{
+    h+=`<div style="font-size:12px;color:var(--muted)">ניחושי הנוקאאוט יתעדכנו לאחר סיום שלב הבתים 🗓️</div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+// ── GROUPS ──
+function rGroups(){
+  let h='<div class="pills">';
+  Object.keys(GRP).forEach(g=>h+=`<button class="pill ${g===aG?'active':''}" onclick="sGV('${g}')">בית ${gNum(g)}</button>`);
+  h+='</div>';
+  const s=standings(aG);
+  const hasRes=MX.filter(m=>m.g===aG).some(m=>RESULTS[m.id]);
+  h+=`<div class="gt">
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;font-weight:900;color:var(--gold)">⚽ בית ${gNum(aG)}</span>
+      <span style="font-size:10px;color:var(--muted)">${hasRes?'תוצאות אמיתיות':'טרם התחיל'}</span>
+    </div>
+    <div class="gr" style="font-size:9px;color:#ffffff33;font-weight:700">#<span>נבחרת</span><span style="text-align:center">מ'</span><span style="text-align:center">נ'</span><span style="text-align:center;color:var(--draw)">ת'</span><span style="text-align:center">ה'</span><span style="text-align:center;color:var(--gold)">נק'</span></div>`;
+  s.forEach((r,i)=>{
+    h+=`<div class="gr ${i<2?'q':''}">
+      <span style="color:${i<2?'var(--gold)':'var(--muted)'};font-weight:900">${i+1}</span>
+      <span style="display:flex;align-items:center;gap:4px">${r.f}<span style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.t}</span></span>
+      <span style="text-align:center;color:var(--muted)">${r.pl}</span>
+      <span style="text-align:center;color:var(--green)">${r.w}</span>
+      <span style="text-align:center;color:var(--draw)">${r.d}</span>
+      <span style="text-align:center;color:var(--red)">${r.l}</span>
+      <span style="text-align:center;font-weight:900;color:${i<2?'var(--gold)':'#ffffffcc'}">${r.pts}</span>
+    </div>`;
+  });
+  h+=`</div><div style="font-size:10px;color:#ffffff22;text-align:center;margin-bottom:14px">🟡 עולות לנוקאאוט</div><div class="sl">📋 משחקים</div>`;
+  [1,2,3].forEach(md=>{
+    h+=`<div style="font-size:11px;color:#FFD70077;font-weight:800;margin-bottom:6px;margin-top:${md>1?'12px':'0'}">מחזור ${md}</div>`;
+    MX.filter(m=>m.g===aG&&m.md===md).forEach(m=>{
+      const sc=SCORES[m.id],r=RESULTS[m.id],p=P[m.id],st=matchStatus(m.id);
+      const colr=st==='correct'?'var(--green)':st==='wrong'?'var(--red)':r?'var(--muted)':p?'var(--gold)':'#ffffff22';
+      const txt=sc?`${sc.h}–${sc.a}`:p?`→ ${pickLabel(p,m)}`:`📅 ${m.d}`;
+      h+=`<div class="card" style="padding:9px 12px;margin-bottom:6px;border-color:${st==='correct'?'#22c55e22':st==='wrong'?'#f8717122':'var(--border)'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+          <span>${flag(m.h)} ${m.h}</span>
+          <span style="font-size:10px;color:${colr};font-weight:700">${txt}</span>
+          <span>${m.a} ${flag(m.a)}</span>
+        </div>
+      </div>`;
+    });
+  });
+  return h;
+}
+function sGV(g){aG=g;render();}
+
+// ── LEADERS ──
+function rLeaders(){
+  const myPts=calcPts(P);
+  const correct=Object.entries(P).filter(([id,p])=>RESULTS[id]&&RESULTS[id]===p).length;
+  const total=Object.keys(P).length+Object.keys(KP).length;
+  const resCount=Object.keys(RESULTS).length;
+  let h=`<div class="stat-grid">
+    <div class="stat-box" style="border-color:#FFD70044"><span style="font-size:18px">⭐</span>
+      <div style="font-size:22px;font-weight:900;color:var(--gold)">${myPts}</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700">הנקודות שלי</div></div>
+    <div class="stat-box" style="border-color:#22c55e44"><span style="font-size:18px">✅</span>
+      <div style="font-size:22px;font-weight:900;color:var(--green)">${correct}</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700">ניחושים נכונים</div></div>
+    <div class="stat-box" style="border-color:#3b82f644"><span style="font-size:18px">📊</span>
+      <div style="font-size:22px;font-weight:900;color:var(--blue)">${resCount}</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700">תוצאות ידועות</div></div>
+  </div>
+  <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:12px;line-height:1.6">
+    ${PTS} נקודות לכל ניחוש נכון · עדכון אוטומטי
+  </div>
+  <div class="sl">🏆 לוח מובילים · עדכון חי</div>`;
+  const medals=['🥇','🥈','🥉'];
+  if(!LB.length){
+    h+=`<div style="text-align:center;padding:40px;color:#ffffff33"><span class="spinner"></span><div style="margin-top:10px;font-size:13px">טוען...</div></div>`;
+  }else{
+    LB.forEach((u,i)=>{
+      const me=cur&&u.id===cur.id;
+      const rank=i<3?medals[i]:`#${i+1}`;
+      const col=i===0?'#FFD700':i===1?'#c0c0c0':i===2?'#cd7f32':me?'var(--blue)':'#ffffffcc';
+      h+=`<div class="lr ${me?'me':''}" onclick="showUserPicks('${u.id}','${u.nm.replace(/'/g,"\\'")}','${u.av||'⚽'}')" style="cursor:pointer">
+        <span style="font-size:18px;width:26px;text-align:center">${rank}</span>
+        <span style="font-size:22px">${u.av||'⚽'}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:800">${u.nm}${me?' (אני)':''}</div>
+          <div style="font-size:10px;color:var(--muted)">${u.n||0} ניחושים</div></div>
+        <div style="text-align:left">
+          <div style="font-size:21px;font-weight:900;color:${col}">${u.pts||0}</div>
+          <div style="font-size:9px;color:var(--muted);font-weight:700">נק'</div>
+        </div>
+      </div>`;
+    });
+  }
+  h+=`<div style="margin-top:16px;background:#0e0e20;border-radius:16px;border:1px solid #3b82f622;padding:16px;text-align:center">
+    <div style="font-size:15px;font-weight:800;margin-bottom:6px">📨 הזמן חברים!</div>
+    <div style="font-size:12px;color:#ffffff44;margin-bottom:10px">שתף את הקישור וכולם ינחשו יחד</div>
+    <button onclick="cpL()" style="padding:9px 20px;border-radius:11px;border:1px solid #3b82f655;background:#3b82f618;color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">📋 העתק קישור</button>
+  </div>`;
+  return h;
+}
+function cpL(){try{navigator.clipboard.writeText(location.href);}catch{}toast('📋 הקישור הועתק!','#3b82f6');}
+
+// ── EXPOSE GLOBALS ──
+window.sG=sG;window.sMD=sMD;window.pM=pM;window.subG=subG;
+window.sGV=sGV;window.cpL=cpL;window.setTab=setTab;
+window.showProf=showProf;window.register=register;window.onNI=onNI;
+window.tapLogo=tapLogo;window.checkPass=checkPass;window.closeAdmin=closeAdmin;
+window.setAdminRes=setAdminRes;window.applyResult=applyResult;
+window.clearResult=clearResult;window.resetResults=resetResults;window.resetAll=resetAll;
+window.showUserPicks=showUserPicks;window.closePicks=closePicks;
+
+// ── INIT ──
+initReg();
+async function init(){
+  await loadResultsFS();
+  if(loadLocal()&&cur){
+    document.getElementById('regOverlay').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('uChip').textContent=cur.av;
+    await fbLoad(cur.id);saveLocal();
+    fbListenLB();listenResults();render();
+    fetchResults();
+    setInterval(fetchResults,5*60*1000);
+  }
+}
+init();
+</script>
+
+<script>
+// ── PWA: Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// ── PWA: Install Prompt ──
+let pwaInstallEvent = null;
+const pwaBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  pwaInstallEvent = e;
+  pwaBtn.classList.add('visible');
+
+  // Auto-hide after 8 seconds
+  setTimeout(() => pwaBtn.classList.remove('visible'), 8000);
+});
+
+window.pwaTriggerInstall = async function() {
+  if (!pwaInstallEvent) return;
+  pwaBtn.classList.remove('visible');
+  pwaInstallEvent.prompt();
+  const { outcome } = await pwaInstallEvent.userChoice;
+  pwaInstallEvent = null;
+};
+
+// Hide button once installed
+window.addEventListener('appinstalled', () => {
+  pwaBtn.classList.remove('visible');
+  pwaInstallEvent = null;
+});
+</script>
+</body>
+</html>
