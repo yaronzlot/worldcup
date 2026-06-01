@@ -675,11 +675,22 @@ async function register(){
   const nm=document.getElementById('nameIn').value.trim();if(nm.length<2)return;
   const newId='u_'+nm.toLowerCase().replace(/\s+/g,'_');
 
-  // Check if name is already taken
+  // Check if name exists — if it's the same user, let them in. If different user, block.
   try{
     const snap=await getDoc(doc(db,'users',newId));
     if(snap.exists()){
-      toast(`השם "${nm}" כבר תפוס, בחר שם אחר 🚫`,'#ef4444');
+      // Same user returning — load their data and welcome back
+      cur={id:newId,nm,av:aAV};
+      document.getElementById('regOverlay').style.display='none';
+      document.getElementById('app').style.display='flex';
+      document.getElementById('uChip').textContent=cur.av;
+      const d=snap.data();
+      P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};
+      saveLocal();
+      fbListenLB();listenResults();render();
+      fetchResults();
+      setInterval(fetchResults,5*60*1000);
+      toast(`ברוך שובך, ${nm}! ⚽`,'#3b82f6');
       return;
     }
   }catch(e){}
