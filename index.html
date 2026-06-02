@@ -451,24 +451,52 @@ function renderAdminMatches() {
   const gm=MX.filter(m=>m.g===adminG);
   list.innerHTML=`<div style="font-size:11px;color:#ffffff44;margin-bottom:10px;font-weight:700">בית ${gNum(adminG)} · ${gm.length} משחקים</div>`;
   gm.forEach(m=>{
-    const curR=RESULTS[m.id], curS=SCORES[m.id];
+    const curR=RESULTS[m.id];
     const hf=flag(m.h), af=flag(m.a);
-    list.innerHTML+=`
-    <div class="admin-match" id="am_${m.id}">
-      <div class="admin-match-name">
-        <span>${hf} ${m.h} vs ${m.a} ${af}</span>
-        <span style="font-size:10px;color:#ffffff33">📅 ${m.d}</span>
-      </div>
-      <div class="res-btns">
-        <button class="res-btn ${curR==='h'?'active-h':''}" id="rb_h_${m.id}" onclick="setAdminRes(${m.id},'h')">${hf} ניצחון</button>
-        <button class="res-btn ${curR==='d'?'active-d':''}" id="rb_d_${m.id}" onclick="setAdminRes(${m.id},'d')">🤝 תיקו</button>
-        <button class="res-btn ${curR==='a'?'active-a':''}" id="rb_a_${m.id}" onclick="setAdminRes(${m.id},'a')">${af} ניצחון</button>
-      </div>
-      <div class="score-inputs">
-        <button class="admin-apply" onclick="applyResult(${m.id},'${m.h}','${m.a}')">✓ שמור</button>
-      </div>
-      ${curR?`<div style="margin-top:6px;font-size:10px;color:#22c55e88;font-weight:700">✓ תוצאה קיימת: ${resultLabel(curR,m)} ${curS?`(${curS.h}–${curS.a})`:''}  <button onclick="clearResult(${m.id})" style="border:none;background:none;color:#f8717188;font-size:10px;cursor:pointer;font-family:inherit">× מחק</button></div>`:''}
-    </div>`;
+
+    const card=document.createElement('div');
+    card.className='admin-match';
+    card.id=`am_${m.id}`;
+
+    const nameRow=document.createElement('div');
+    nameRow.className='admin-match-name';
+    nameRow.innerHTML=`<span>${hf} ${m.h} vs ${m.a} ${af}</span><span style="font-size:10px;color:#ffffff33">📅 ${m.d}</span>`;
+    card.appendChild(nameRow);
+
+    const btns=document.createElement('div');
+    btns.className='res-btns';
+    [['h',`${hf} ניצחון`],['d','🤝 תיקו'],['a',`${af} ניצחון`]].forEach(([val,label])=>{
+      const b=document.createElement('button');
+      b.id=`rb_${val}_${m.id}`;
+      b.className='res-btn'+(curR===val?` active-${val}`:'');
+      b.textContent=label;
+      b.addEventListener('click',()=>setAdminRes(m.id,val));
+      btns.appendChild(b);
+    });
+    card.appendChild(btns);
+
+    const saveRow=document.createElement('div');
+    saveRow.className='score-inputs';
+    const saveBtn=document.createElement('button');
+    saveBtn.className='admin-apply';
+    saveBtn.textContent='✓ שמור';
+    saveBtn.addEventListener('click',()=>applyResult(m.id,m.h,m.a));
+    saveRow.appendChild(saveBtn);
+    card.appendChild(saveRow);
+
+    if(curR){
+      const statusDiv=document.createElement('div');
+      statusDiv.style.cssText='margin-top:6px;font-size:10px;color:#22c55e88;font-weight:700';
+      statusDiv.innerHTML=`✓ תוצאה קיימת: ${resultLabel(curR,m)} `;
+      const delBtn=document.createElement('button');
+      delBtn.style.cssText='border:none;background:none;color:#f8717188;font-size:10px;cursor:pointer;font-family:inherit';
+      delBtn.textContent='× מחק';
+      delBtn.addEventListener('click',()=>clearResult(m.id));
+      statusDiv.appendChild(delBtn);
+      card.appendChild(statusDiv);
+    }
+
+    list.appendChild(card);
   });
 }
 
@@ -485,18 +513,27 @@ function setAdminRes(id,r){
 
 async function applyResult(id, hName, aName) {
   try {
-    const finalR = adminPicks[id] || RESULTS[id];
-    if(!finalR){ toast('⚠️ בחר תוצאה קודם','#f59e0b'); return; }
-    RESULTS[id] = finalR;
+    const hVal=parseInt(document.getElementById(`sh_${id}`).value);
+    const aVal=parseInt(document.getElementById(`sa_${id}`).value);
+    // אם הוכנס ניקוד — חשב תוצאה אוטומטית, אחרת השתמש בבחירה הידנית
+    let finalR;
+    if(!isNaN(hVal)&&!isNaN(aVal)){
+      finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
+    } else {
+      finalR = adminPicks[id]||RESULTS[id];
+    }
+    if(!finalR){ toast('⚠️ בחר תוצאה או הכנס ניקוד','#f59e0b'); return; }
+    RESULTS[id]=finalR;
+    if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
     toast('⏳ שומר...','#3b82f6');
     await saveResults();
     await recalcAllUsers();
     renderAdminMatches();
     render();
-    toast(`✅ ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
+    toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
   } catch(e) {
     console.error('applyResult error:', e);
-    toast('❌ שגיאה: ' + e.message, '#f87171');
+    toast('❌ שגיאה בשמירה: ' + e.message, '#f87171');
   }
 }
 
