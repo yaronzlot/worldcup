@@ -764,6 +764,7 @@ async function register(){
       document.getElementById('regOverlay').style.display='none';
       document.getElementById('app').style.display='flex';
       document.getElementById('uChip').textContent=cur.av;
+      pushAppState();
       const d=snap.data();
       P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};
       saveLocal();
@@ -780,6 +781,7 @@ async function register(){
   document.getElementById('regOverlay').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('uChip').textContent=cur.av;
+  pushAppState();
   saveLocal();
   await fbSave();
   fbListenLB();listenResults();render();
@@ -1047,6 +1049,28 @@ function rLeaders(){
   return h;
 }
 function cpL(){try{navigator.clipboard.writeText(location.href);}catch{}toast('📋 הקישור הועתק!','#3b82f6');}
+
+
+// ── BACK BUTTON ──
+let _backPressedOnce = false;
+function pushAppState() {
+  history.pushState({app:true}, '');
+}
+window.addEventListener('popstate', () => {
+  // סגור overlay פתוח לפי סדר עדיפויות
+  const picksOverlay = document.getElementById('picksOverlay');
+  if (picksOverlay) { closePicks(); pushAppState(); return; }
+  const adminPanel = document.getElementById('adminPanel');
+  if (adminPanel && adminPanel.style.display !== 'none') { closeAdmin(); pushAppState(); return; }
+  const adminPass = document.getElementById('adminPassModal');
+  if (adminPass && adminPass.style.display !== 'none') { closeAdmin(); pushAppState(); return; }
+  // אין כלום פתוח — בקש לחיצה כפולה
+  if (_backPressedOnce) return; // יצא מהאפליקציה
+  _backPressedOnce = true;
+  toast('לחץ שוב לצאת מהאפליקציה', '#f59e0b');
+  pushAppState();
+  setTimeout(() => { _backPressedOnce = false; }, 2000);
+});
 
 // ── EXPOSE GLOBALS ──
 // ── ADMIN EVENT LISTENERS ──
