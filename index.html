@@ -121,8 +121,8 @@ html, body { height: 100%; background: var(--bg); color: #fff;
 .picks-close { margin-right: auto; background: none; border: none; color: #ffffff55; font-size: 24px; cursor: pointer; line-height: 1; }
 .pick-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
   border-radius: 11px; border: 1px solid #ffffff10; background: #ffffff06; margin-bottom: 6px; font-size: 12px; }
-.pick-row.correct { border-color: #22c55e44; background: #22c55e0a; }
-.pick-row.wrong { border-color: #f8717144; background: #f871710a; }
+.pick-row.correct { border-color: #22c55e99; background: #22c55e28; color: #fff; }
+.pick-row.wrong { border-color: #f8717199; background: #f8717128; color: #fff; }
 .pick-row.pending { border-color: #FFD70033; background: #FFD7000a; }
 /* ── ADMIN PANEL ── */
 .admin-overlay { position: fixed; inset: 0; z-index: 200; background: #000000cc;
@@ -488,22 +488,29 @@ function setAdminRes(id,r){
 }
 
 async function applyResult(id, hName, aName) {
-  const r=adminPicks[id]||RESULTS[id];
-  const hVal=parseInt(document.getElementById(`sh_${id}`).value);
-  const aVal=parseInt(document.getElementById(`sa_${id}`).value);
-  if(!r){ toast('⚠️ בחר תוצאה קודם','#f59e0b'); return; }
-  // Auto-detect result from score if both entered
-  let finalR=r;
-  if(!isNaN(hVal)&&!isNaN(aVal)){
-    finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
+  try {
+    const hVal=parseInt(document.getElementById(`sh_${id}`).value);
+    const aVal=parseInt(document.getElementById(`sa_${id}`).value);
+    // אם הוכנס ניקוד — חשב תוצאה אוטומטית, אחרת השתמש בבחירה הידנית
+    let finalR;
+    if(!isNaN(hVal)&&!isNaN(aVal)){
+      finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
+    } else {
+      finalR = adminPicks[id]||RESULTS[id];
+    }
+    if(!finalR){ toast('⚠️ בחר תוצאה או הכנס ניקוד','#f59e0b'); return; }
+    RESULTS[id]=finalR;
+    if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
+    toast('⏳ שומר...','#3b82f6');
+    await saveResults();
+    await recalcAllUsers();
+    renderAdminMatches();
+    render();
+    toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
+  } catch(e) {
+    console.error('applyResult error:', e);
+    toast('❌ שגיאה בשמירה: ' + e.message, '#f87171');
   }
-  RESULTS[id]=finalR;
-  if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
-  await saveResults();
-  await recalcAllUsers();
-  renderAdminMatches();
-  render();
-  toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
 }
 
 async function clearResult(id){
@@ -515,18 +522,28 @@ async function clearResult(id){
 }
 
 async function saveResults(){
-  await setDoc(doc(db,'meta','results'),{RESULTS,SCORES,updatedAt:serverTimestamp()});
+  try {
+    await setDoc(doc(db,'meta','results'),{RESULTS,SCORES,updatedAt:serverTimestamp()});
+  } catch(e) {
+    console.error('saveResults error:', e);
+    throw e;
+  }
 }
 
 async function recalcAllUsers(){
-  const snap=await getDocs(collection(db,'users'));
-  const batch=writeBatch(db);
-  snap.docs.forEach(d=>{
-    const u=d.data();
-    const pts=calcPts(u.P||{});
-    batch.update(doc(db,'users',d.id),{pts,updatedAt:serverTimestamp()});
-  });
-  await batch.commit();
+  try {
+    const snap=await getDocs(collection(db,'users'));
+    const batch=writeBatch(db);
+    snap.docs.forEach(d=>{
+      const u=d.data();
+      const pts=calcPts(u.P||{});
+      batch.update(doc(db,'users',d.id),{pts,updatedAt:serverTimestamp()});
+    });
+    await batch.commit();
+  } catch(e) {
+    console.error('recalcAllUsers error:', e);
+    throw e;
+  }
 }
 
 async function resetResults(){
