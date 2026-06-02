@@ -465,10 +465,6 @@ function renderAdminMatches() {
         <button class="res-btn ${curR==='a'?'active-a':''}" id="rb_a_${m.id}" onclick="setAdminRes(${m.id},'a')">${af} ניצחון</button>
       </div>
       <div class="score-inputs">
-        <span style="font-size:11px;color:#ffffff55;flex:1">${hf} ניקוד:</span>
-        <input class="score-inp" id="sh_${m.id}" type="number" min="0" max="20" value="${curS?curS.h:''}" placeholder="">
-        <span style="font-size:14px;color:#ffffff44">–</span>
-        <input class="score-inp" id="sa_${m.id}" type="number" min="0" max="20" value="${curS?curS.a:''}" placeholder="">
         <button class="admin-apply" onclick="applyResult(${m.id},'${m.h}','${m.a}')">✓ שמור</button>
       </div>
       ${curR?`<div style="margin-top:6px;font-size:10px;color:#22c55e88;font-weight:700">✓ תוצאה קיימת: ${resultLabel(curR,m)} ${curS?`(${curS.h}–${curS.a})`:''}  <button onclick="clearResult(${m.id})" style="border:none;background:none;color:#f8717188;font-size:10px;cursor:pointer;font-family:inherit">× מחק</button></div>`:''}
@@ -489,29 +485,18 @@ function setAdminRes(id,r){
 
 async function applyResult(id, hName, aName) {
   try {
-    const hRaw=document.getElementById(`sh_${id}`).value.trim();
-    const aRaw=document.getElementById(`sa_${id}`).value.trim();
-    const hVal=hRaw!==''?parseInt(hRaw):NaN;
-    const aVal=aRaw!==''?parseInt(aRaw):NaN;
-    // אם הוכנס ניקוד בשני השדות — חשב תוצאה ממנו, אחרת השתמש בבחירה הידנית
-    let finalR;
-    if(hRaw!==''&&aRaw!==''&&!isNaN(hVal)&&!isNaN(aVal)){
-      finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
-    } else {
-      finalR = adminPicks[id]||RESULTS[id];
-    }
-    if(!finalR){ toast('⚠️ בחר תוצאה או הכנס ניקוד','#f59e0b'); return; }
-    RESULTS[id]=finalR;
-    if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
+    const finalR = adminPicks[id] || RESULTS[id];
+    if(!finalR){ toast('⚠️ בחר תוצאה קודם','#f59e0b'); return; }
+    RESULTS[id] = finalR;
     toast('⏳ שומר...','#3b82f6');
     await saveResults();
     await recalcAllUsers();
     renderAdminMatches();
     render();
-    toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
+    toast(`✅ ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
   } catch(e) {
     console.error('applyResult error:', e);
-    toast('❌ שגיאה בשמירה: ' + e.message, '#f87171');
+    toast('❌ שגיאה: ' + e.message, '#f87171');
   }
 }
 
