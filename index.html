@@ -1055,6 +1055,7 @@ function cpL(){try{navigator.clipboard.writeText(location.href);}catch{}toast('�
 let _backPressedOnce = false;
 function pushAppState() {
   history.pushState({app:true}, '');
+  history.pushState({app:true}, '');
 }
 window.addEventListener('popstate', () => {
   // סגור overlay פתוח לפי סדר עדיפויות
