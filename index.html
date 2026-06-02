@@ -513,27 +513,18 @@ function setAdminRes(id,r){
 
 async function applyResult(id, hName, aName) {
   try {
-    const hVal=parseInt(document.getElementById(`sh_${id}`).value);
-    const aVal=parseInt(document.getElementById(`sa_${id}`).value);
-    // אם הוכנס ניקוד — חשב תוצאה אוטומטית, אחרת השתמש בבחירה הידנית
-    let finalR;
-    if(!isNaN(hVal)&&!isNaN(aVal)){
-      finalR = hVal>aVal?'h':aVal>hVal?'a':'d';
-    } else {
-      finalR = adminPicks[id]||RESULTS[id];
-    }
-    if(!finalR){ toast('⚠️ בחר תוצאה או הכנס ניקוד','#f59e0b'); return; }
-    RESULTS[id]=finalR;
-    if(!isNaN(hVal)&&!isNaN(aVal)) SCORES[id]={h:hVal,a:aVal};
+    const finalR = adminPicks[id] || RESULTS[id];
+    if(!finalR){ toast('⚠️ בחר תוצאה קודם','#f59e0b'); return; }
+    RESULTS[id] = finalR;
     toast('⏳ שומר...','#3b82f6');
     await saveResults();
     await recalcAllUsers();
     renderAdminMatches();
     render();
-    toast(`✅ תוצאה עודכנה: ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
+    toast(`✅ ${resultLabel(finalR,{h:hName,a:aName})}`,'#22c55e');
   } catch(e) {
     console.error('applyResult error:', e);
-    toast('❌ שגיאה בשמירה: ' + e.message, '#f87171');
+    toast('❌ שגיאה: ' + e.message, '#f87171');
   }
 }
 
