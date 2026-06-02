@@ -189,6 +189,7 @@ html, body { height: 100%; background: var(--bg); color: #fff;
   <div style="width:100%;max-width:320px;margin-bottom:14px">
     <input id="nameIn" class="ri" type="text" maxlength="16" placeholder="הכינוי שלך..." oninput="onNI()">
   </div>
+  <div id="similarNameWarning" style="display:none;width:100%;max-width:320px;margin-top:-6px;margin-bottom:12px;background:#f59e0b18;border:1px solid #f59e0b55;border-radius:12px;padding:10px 14px;font-size:13px;color:#f59e0b;line-height:1.5;text-align:right"></div>
   <button id="regBtn" class="rb" disabled onclick="register()">בואו לנחש! 🌍</button>
 </div>
 
@@ -670,7 +671,54 @@ function initReg(){
     g.appendChild(b);
   });
 }
-function onNI(){document.getElementById('regBtn').disabled=document.getElementById('nameIn').value.trim().length<2;}
+function onNI(){
+  const val=document.getElementById('nameIn').value.trim();
+  document.getElementById('regBtn').disabled=val.length<2;
+  checkSimilarNames(val);
+}
+
+function levenshtein(a,b){
+  a=a.toLowerCase();b=b.toLowerCase();
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+let _regAllUsers=[];
+
+async function checkSimilarNames(name){
+  const w=document.getElementById('similarNameWarning');
+  if(!w)return;
+  if(name.length<2){w.style.display='none';return;}
+
+  if(!_regAllUsers.length&&db){
+    try{
+      const snap=await getDocs(collection(db,'users'));
+      _regAllUsers=snap.docs.map(d=>d.data().nm||'');
+    }catch(e){return;}
+  }
+
+  const exact=_regAllUsers.find(n=>n.trim().toLowerCase()===name.toLowerCase());
+  if(exact){
+    w.innerHTML=`✅ הכינוי "<strong>${exact}</strong>" כבר קיים — תתחבר אוטומטית לחשבון שלו!`;
+    w.style.background='#22c55e18';w.style.borderColor='#22c55e55';w.style.color='#22c55e';
+    w.style.display='block';return;
+  }
+
+  const similar=_regAllUsers.filter(n=>{
+    const dist=levenshtein(name,n.trim());
+    const maxLen=Math.max(name.length,n.trim().length);
+    return dist>0&&dist<=Math.max(1,Math.floor(maxLen*0.35));
+  });
+
+  if(similar.length){
+    w.innerHTML=`⚠️ שם דומה כבר קיים: <strong>${similar.join(', ')}</strong><br><span style="font-size:11px;opacity:0.8">אם זה אתה — כתוב את השם בדיוק כפי שנרשמת.</span>`;
+    w.style.background='#f59e0b18';w.style.borderColor='#f59e0b55';w.style.color='#f59e0b';
+    w.style.display='block';
+  }else{w.style.display='none';}
+}
 async function register(){
   const nm=document.getElementById('nameIn').value.trim();if(nm.length<2)return;
   const newId='u_'+nm.toLowerCase().replace(/\s+/g,'_');
