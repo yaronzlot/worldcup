@@ -236,11 +236,11 @@ html, body { height: 100%; background: var(--bg); color: #fff;
 </div>
 
 <!-- Admin Panel -->
-<div id="adminPanel" class="admin-overlay" style="display:none" onclick="e=>e.target===this&&closeAdmin()">
+<div id="adminPanel" class="admin-overlay" style="display:none">
   <div class="admin-sheet" style="animation:slideUp 0.3s ease">
     <div class="admin-title">
       <span>🛠️</span><span>פאנל מנהל</span>
-      <button class="admin-close" onclick="closeAdmin()">✕</button>
+      <button class="admin-close" id="adminCloseBtn">✕</button>
     </div>
     <div style="font-size:11px;color:#ff666688;margin-bottom:16px">עדכון ידני של תוצאות לבדיקה</div>
 
@@ -252,9 +252,9 @@ html, body { height: 100%; background: var(--bg); color: #fff;
     <div style="border-top:1px solid #ffffff10;margin-top:16px;padding-top:16px">
       <div style="font-size:12px;font-weight:800;color:#ff4444;margin-bottom:10px">⚠️ איפוס נתונים</div>
       <button class="admin-reset-btn" style="background:#ff000015;color:var(--red);border:1px solid #ff000033"
-        onclick="resetResults()">🗑️ איפוס תוצאות בלבד</button>
+        id="resetResultsBtn">🗑️ איפוס תוצאות בלבד</button>
       <button class="admin-reset-btn" style="background:#ff000030;color:#ff6666;border:1px solid #ff000055;margin-top:6px"
-        onclick="resetAll()">💥 איפוס מלא (תוצאות + משתמשים)</button>
+        id="resetAllBtn">💥 איפוס מלא (תוצאות + משתמשים)</button>
     </div>
   </div>
 </div>
@@ -1058,6 +1058,14 @@ function rLeaders(){
 function cpL(){try{navigator.clipboard.writeText(location.href);}catch{}toast('📋 הקישור הועתק!','#3b82f6');}
 
 // ── EXPOSE GLOBALS ──
+// ── ADMIN EVENT LISTENERS ──
+document.getElementById('adminPanel').addEventListener('click', e=>{
+  if(e.target===document.getElementById('adminPanel')) closeAdmin();
+});
+document.getElementById('adminCloseBtn').addEventListener('click', closeAdmin);
+document.getElementById('resetResultsBtn').addEventListener('click', resetResults);
+document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+
 window.sG=sG;window.sMD=sMD;window.pM=pM;window.subG=subG;
 window.sGV=sGV;window.cpL=cpL;window.setTab=setTab;
 window.showProf=showProf;window.register=register;window.onNI=onNI;
