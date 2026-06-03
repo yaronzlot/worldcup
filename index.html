@@ -1059,22 +1059,19 @@ function handleBack() {
   if (adminPanel && adminPanel.style.display !== 'none') { closeAdmin(); return; }
   const adminPass = document.getElementById('adminPassModal');
   if (adminPass && adminPass.style.display !== 'none') { closeAdmin(); return; }
-  // אין כלום פתוח — בקש לחיצה כפולה
-  if (_backPressedOnce) { history.go(-1); return; }
+  if (_backPressedOnce) { window.history.go(-(window.history.length)); return; }
   _backPressedOnce = true;
-  toast('לחץ שוב לצאת מהאפליקציה', '#f59e0b');
-  setTimeout(() => { _backPressedOnce = false; }, 2000);
+  toast('לחץ שוב לצאת', '#f59e0b');
+  setTimeout(() => { _backPressedOnce = false; }, 2500);
 }
 
-// דחוף state ריק כדי ש-popstate יופעל
-history.pushState({app:true}, '');
+// מילוי ה-history כדי שתמיד יהיה לאן לחזור
+for (let i = 0; i < 5; i++) history.pushState({app:true, i}, '');
 
-window.addEventListener('popstate', (e) => {
-  if (e.state && e.state.app) {
-    // הגענו לכאן מהחזרה — טפל בזה
-    history.pushState({app:true}, ''); // דחוף שוב
-    handleBack();
-  }
+window.addEventListener('popstate', () => {
+  // תמיד דחוף שוב כדי לא לצאת מהאפליקציה
+  history.pushState({app:true}, '');
+  handleBack();
 });
 
 // ── EXPOSE GLOBALS ──
