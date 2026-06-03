@@ -764,7 +764,6 @@ async function register(){
       document.getElementById('regOverlay').style.display='none';
       document.getElementById('app').style.display='flex';
       document.getElementById('uChip').textContent=cur.av;
-      pushAppState();
       const d=snap.data();
       P=d.P||{};KP=d.KP||{};SUB=d.SUB||{};
       saveLocal();
@@ -781,7 +780,6 @@ async function register(){
   document.getElementById('regOverlay').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('uChip').textContent=cur.av;
-  pushAppState();
   saveLocal();
   await fbSave();
   fbListenLB();listenResults();render();
@@ -1053,24 +1051,30 @@ function cpL(){try{navigator.clipboard.writeText(location.href);}catch{}toast('�
 
 // ── BACK BUTTON ──
 let _backPressedOnce = false;
-function pushAppState() {
-  history.pushState({app:true}, '');
-  history.pushState({app:true}, '');
-}
-window.addEventListener('popstate', () => {
-  // סגור overlay פתוח לפי סדר עדיפויות
+
+function handleBack() {
   const picksOverlay = document.getElementById('picksOverlay');
-  if (picksOverlay) { closePicks(); pushAppState(); return; }
+  if (picksOverlay) { closePicks(); return; }
   const adminPanel = document.getElementById('adminPanel');
-  if (adminPanel && adminPanel.style.display !== 'none') { closeAdmin(); pushAppState(); return; }
+  if (adminPanel && adminPanel.style.display !== 'none') { closeAdmin(); return; }
   const adminPass = document.getElementById('adminPassModal');
-  if (adminPass && adminPass.style.display !== 'none') { closeAdmin(); pushAppState(); return; }
+  if (adminPass && adminPass.style.display !== 'none') { closeAdmin(); return; }
   // אין כלום פתוח — בקש לחיצה כפולה
-  if (_backPressedOnce) return; // יצא מהאפליקציה
+  if (_backPressedOnce) { history.go(-1); return; }
   _backPressedOnce = true;
   toast('לחץ שוב לצאת מהאפליקציה', '#f59e0b');
-  pushAppState();
   setTimeout(() => { _backPressedOnce = false; }, 2000);
+}
+
+// דחוף state ריק כדי ש-popstate יופעל
+history.pushState({app:true}, '');
+
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.app) {
+    // הגענו לכאן מהחזרה — טפל בזה
+    history.pushState({app:true}, ''); // דחוף שוב
+    handleBack();
+  }
 });
 
 // ── EXPOSE GLOBALS ──
